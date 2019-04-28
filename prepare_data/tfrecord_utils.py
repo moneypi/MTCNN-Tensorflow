@@ -81,8 +81,8 @@ def _convert_to_example_simple(image_example, image_buffer):
     roi = [bbox['xmin'],bbox['ymin'],bbox['xmax'],bbox['ymax']]
     landmark = [bbox['xlefteye'],bbox['ylefteye'],bbox['xrighteye'],bbox['yrighteye'],bbox['xnose'],bbox['ynose'],
                 bbox['xleftmouth'],bbox['yleftmouth'],bbox['xrightmouth'],bbox['yrightmouth']]
-                
-      
+
+
     example = tf.train.Example(features=tf.train.Features(feature={
         'image/encoded': _bytes_feature(image_buffer),
         'image/label': _int64_feature(class_label),

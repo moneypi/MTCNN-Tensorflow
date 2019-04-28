@@ -7,11 +7,11 @@ import numpy as np
 import tensorflow as tf
 from tensorboard.plugins import projector
 
-from train_models.MTCNN_config import config
+from MTCNN_config import config
 
 sys.path.append("../prepare_data")
 print(sys.path)
-from prepare_data.read_tfrecord_v2 import read_multi_tfrecords,read_single_tfrecord
+from read_tfrecord_v2 import read_multi_tfrecords,read_single_tfrecord
 
 import random
 import cv2
@@ -45,16 +45,16 @@ def random_flip_images(image_batch,label_batch,landmark_batch):
     #the index of image needed to flip
     indexes = np.where(random_number>0)[0]
     fliplandmarkindexes = np.where(label_batch[indexes]==-2)[0]
-    
-    #random flip    
+
+    #random flip
     for i in indexes:
         cv2.flip(image_batch[i],1,image_batch[i])
-    #pay attention: flip landmark    
+    #pay attention: flip landmark
     for i in fliplandmarkindexes:
         landmark_ = landmark_batch[i].reshape((-1,2))
         landmark_ = np.asarray([(1-x, y) for (x, y) in landmark_])
         landmark_[[0, 1]] = landmark_[[1, 0]]#left eye<->right eye
-        landmark_[[3, 4]] = landmark_[[4, 3]]#left mouth<->right mouth        
+        landmark_[[3, 4]] = landmark_[[4, 3]]#left mouth<->right mouth
         landmark_batch[i] = landmark_.ravel()
     return image_batch,landmark_batch
 '''
@@ -67,18 +67,18 @@ def random_flip_images(image_batch,label_batch,landmark_batch):
         flipposindexes = np.where(label_batch==1)[0]
         #only flip
         flipindexes = np.concatenate((fliplandmarkindexes,flipposindexes))
-        #random flip    
+        #random flip
         for i in flipindexes:
-            cv2.flip(image_batch[i],1,image_batch[i])        
-        
-        #pay attention: flip landmark    
+            cv2.flip(image_batch[i],1,image_batch[i])
+
+        #pay attention: flip landmark
         for i in fliplandmarkindexes:
             landmark_ = landmark_batch[i].reshape((-1,2))
             landmark_ = np.asarray([(1-x, y) for (x, y) in landmark_])
             landmark_[[0, 1]] = landmark_[[1, 0]]#left eye<->right eye
-            landmark_[[3, 4]] = landmark_[[4, 3]]#left mouth<->right mouth        
+            landmark_[[3, 4]] = landmark_[[4, 3]]#left mouth<->right mouth
             landmark_batch[i] = landmark_.ravel()
-        
+
     return image_batch,landmark_batch
 
 def image_color_distort(inputs):
@@ -118,8 +118,8 @@ def train(net_factory, prefix, end_epoch, base_dir,
         dataset_dir = os.path.join(base_dir,'train_%s_landmark.tfrecord_shuffle' % net)
         print('dataset dir is:',dataset_dir)
         image_batch, label_batch, bbox_batch,landmark_batch = read_single_tfrecord(dataset_dir, config.BATCH_SIZE, net)
-        
-    #RNet use 3 tfrecords to get data    
+
+    #RNet use 3 tfrecords to get data
     else:
         pos_dir = os.path.join(base_dir,'pos_landmark.tfrecord_shuffle')
         part_dir = os.path.join(base_dir,'part_landmark.tfrecord_shuffle')
@@ -138,9 +138,9 @@ def train(net_factory, prefix, end_epoch, base_dir,
         assert landmark_batch_size != 0,"Batch Size Error "
         batch_sizes = [pos_batch_size,part_batch_size,neg_batch_size,landmark_batch_size]
         #print('batch_size is:', batch_sizes)
-        image_batch, label_batch, bbox_batch,landmark_batch = read_multi_tfrecords(dataset_dirs,batch_sizes, net)        
-        
-    #landmark_dir    
+        image_batch, label_batch, bbox_batch,landmark_batch = read_multi_tfrecords(dataset_dirs,batch_sizes, net)
+
+    #landmark_dir
     if net == 'PNet':
         image_size = 12
         radio_cls_loss = 1.0;radio_bbox_loss = 0.5;radio_landmark_loss = 0.5;
@@ -150,7 +150,7 @@ def train(net_factory, prefix, end_epoch, base_dir,
     else:
         radio_cls_loss = 1.0;radio_bbox_loss = 0.5;radio_landmark_loss = 1;
         image_size = 48
-    
+
     #define placeholder
     input_image = tf.placeholder(tf.float32, shape=[config.BATCH_SIZE, image_size, image_size, 3], name='input_image')
     label = tf.placeholder(tf.float32, shape=[config.BATCH_SIZE], name='label')
@@ -186,7 +186,7 @@ def train(net_factory, prefix, end_epoch, base_dir,
     writer = tf.summary.FileWriter(logs_dir,sess.graph)
     projector_config = projector.ProjectorConfig()
     projector.visualize_embeddings(writer,projector_config)
-    #begin 
+    #begin
     coord = tf.train.Coordinator()
     #begin enqueue thread
     threads = tf.train.start_queue_runners(sess=sess, coord=coord)
@@ -196,9 +196,6 @@ def train(net_factory, prefix, end_epoch, base_dir,
     epoch = 0
     sess.graph.finalize()
     try:
-
-
-
         for step in range(MAX_STEP):
             i = i + 1
             if coord.should_stop():

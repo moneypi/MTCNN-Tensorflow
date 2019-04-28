@@ -7,12 +7,9 @@ import cv2
 import numpy as np
 import numpy.random as npr
 
-from prepare_data.BBox_utils import getDataFromTxt, BBox
-from prepare_data.Landmark_utils import rotate, flip
-from prepare_data.utils import IoU
-
-
-
+from BBox_utils import getDataFromTxt, BBox
+from Landmark_utils import rotate, flip
+from utils import IoU
 
 def GenerateData(ftxt,data_path,net,argument=False):
     '''
@@ -66,10 +63,10 @@ def GenerateData(ftxt,data_path,net,argument=False):
             rv = ((one[0]-gt_box[0])/(gt_box[2]-gt_box[0]), (one[1]-gt_box[1])/(gt_box[3]-gt_box[1]))
             # put the normalized value into the new list landmark
             landmark[index] = rv
-        
+
         F_imgs.append(f_face)
         F_landmarks.append(landmark.reshape(10))
-        landmark = np.zeros((5, 2))        
+        landmark = np.zeros((5, 2))
         if argument:
             idx = idx + 1
             if idx % 100 == 0:
@@ -78,7 +75,7 @@ def GenerateData(ftxt,data_path,net,argument=False):
             #gt's width
             gt_w = x2 - x1 + 1
             #gt's height
-            gt_h = y2 - y1 + 1        
+            gt_h = y2 - y1 + 1
             if max(gt_w, gt_h) < 40 or x1 < 0 or y1 < 0:
                 continue
             #random shift
@@ -109,9 +106,9 @@ def GenerateData(ftxt,data_path,net,argument=False):
                     F_landmarks.append(landmark.reshape(10))
                     landmark = np.zeros((5, 2))
                     landmark_ = F_landmarks[-1].reshape(-1,2)
-                    bbox = BBox([nx1,ny1,nx2,ny2])                    
+                    bbox = BBox([nx1,ny1,nx2,ny2])
 
-                    #mirror                    
+                    #mirror
                     if random.choice([0,1]) > 0:
                         face_flipped, landmark_flipped = flip(resized_im, landmark_)
                         face_flipped = cv2.resize(face_flipped, (size, size))
@@ -127,27 +124,27 @@ def GenerateData(ftxt,data_path,net,argument=False):
                         face_rotated_by_alpha = cv2.resize(face_rotated_by_alpha, (size, size))
                         F_imgs.append(face_rotated_by_alpha)
                         F_landmarks.append(landmark_rotated.reshape(10))
-                
+
                         #flip
                         face_flipped, landmark_flipped = flip(face_rotated_by_alpha, landmark_rotated)
                         face_flipped = cv2.resize(face_flipped, (size, size))
                         F_imgs.append(face_flipped)
-                        F_landmarks.append(landmark_flipped.reshape(10))                
-                    
+                        F_landmarks.append(landmark_flipped.reshape(10))
+
                     #anti-clockwise rotation
-                    if random.choice([0,1]) > 0: 
+                    if random.choice([0,1]) > 0:
                         face_rotated_by_alpha, landmark_rotated = rotate(img, bbox, \
                                                                          bbox.reprojectLandmark(landmark_), -5)#顺时针旋转
                         landmark_rotated = bbox.projectLandmark(landmark_rotated)
                         face_rotated_by_alpha = cv2.resize(face_rotated_by_alpha, (size, size))
                         F_imgs.append(face_rotated_by_alpha)
                         F_landmarks.append(landmark_rotated.reshape(10))
-                
+
                         face_flipped, landmark_flipped = flip(face_rotated_by_alpha, landmark_rotated)
                         face_flipped = cv2.resize(face_flipped, (size, size))
                         F_imgs.append(face_flipped)
-                        F_landmarks.append(landmark_flipped.reshape(10)) 
-                    
+                        F_landmarks.append(landmark_flipped.reshape(10))
+
             F_imgs, F_landmarks = np.asarray(F_imgs), np.asarray(F_landmarks)
             #print F_imgs.shape
             #print F_landmarks.shape
@@ -166,12 +163,12 @@ def GenerateData(ftxt,data_path,net,argument=False):
                 landmarks = map(str,list(F_landmarks[i]))
                 f.write(join(dstdir,"%d.jpg" %(image_id))+" -2 "+" ".join(landmarks)+"\n")
                 image_id = image_id + 1
-            
+
     #print F_imgs.shape
     #print F_landmarks.shape
     #F_imgs = processImage(F_imgs)
     #shuffle_in_unison_scary(F_imgs, F_landmarks)
-    
+
     f.close()
     return F_imgs,F_landmarks
 
@@ -189,5 +186,5 @@ if __name__ == '__main__':
     #the file contains the names of all the landmark training data
     train_txt = "trainImageList.txt"
     imgs,landmarks = GenerateData(train_txt,data_path,net,argument=True )
-    
-   
+
+

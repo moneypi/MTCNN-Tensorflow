@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import numpy.random as npr
 
-from prepare_data.utils import IoU
+from utils import IoU
 
 anno_file = "wider_face_train.txt"
 im_dir = "../../DATA/WIDER_train/images"
@@ -113,11 +113,11 @@ for annotation in annotations:
                 continue
             crop_box = np.array([nx1, ny1, nx1 + size, ny1 + size])
             Iou = IoU(crop_box, boxes)
-    
+
             cropped_im = img[ny1: ny1 + size, nx1: nx1 + size, :]
             #rexize cropped image to be 12 * 12
             resized_im = cv2.resize(cropped_im, (12, 12), interpolation=cv2.INTER_LINEAR)
-    
+
             if np.max(Iou) < 0.3:
                 # Iou with all gts must below 0.3
                 save_file = os.path.join(neg_save_dir, "%s.jpg" % n_idx)
@@ -151,7 +151,7 @@ for annotation in annotations:
             ny2 = ny1 + size
 
             if nx2 > width or ny2 > height:
-                continue 
+                continue
             crop_box = np.array([nx1, ny1, nx2, ny2])
             #yu gt de offset
             offset_x1 = (x1 - nx1) / float(size)
