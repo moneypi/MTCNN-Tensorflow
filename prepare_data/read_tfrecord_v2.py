@@ -31,7 +31,7 @@ def read_single_tfrecord(tfrecord_file, batch_size, net):
     image = tf.decode_raw(image_features['image/encoded'], tf.uint8)
     image = tf.reshape(image, [image_size, image_size, 3])
     image = (tf.cast(image, tf.float32)-127.5) / 128
-    
+
     # image = tf.image.per_image_standardization(image)
     label = tf.cast(image_features['image/label'], tf.float32)
     roi = tf.cast(image_features['image/roi'],tf.float32)
@@ -70,14 +70,14 @@ def read_multi_tfrecords(tfrecord_files, batch_sizes, net):
     print( rois.get_shape())
     landmarks = tf.concat([pos_landmark,part_landmark,neg_landmark,landmark_landmark],0,name="concat/landmark")
     return images,labels,rois,landmarks
-    
+
 def read():
     BATCH_SIZE = 64
     net = 'PNet'
     dataset_dir = "imglists/PNet"
     landmark_dir = os.path.join(dataset_dir,'train_PNet_ALL_few.tfrecord_shuffle')
     images, labels, rois,landmarks  = read_single_tfrecord(landmark_dir, BATCH_SIZE, net)
-    
+
     '''
     pos_dir = os.path.join(dataset_dir,'pos.tfrecord_shuffle')
     part_dir = os.path.join(dataset_dir,'part.tfrecord_shuffle')
@@ -118,9 +118,9 @@ def read():
 
         for j in range(5):
             cv2.circle(cc,(int(landmark_batch[i][2*j]*120),int(landmark_batch[i][2*j+1]*120)),3,(0,0,255))
-        
+
         cv2.imshow("lala",cc)
         cv2.waitKey()
-    
+
 if __name__ == '__main__':
     read()

@@ -180,7 +180,6 @@ def P_Net(inputs,label=None,bbox_target=None,landmark_target=None,training=True)
                         padding='valid'):
         print(inputs.get_shape())
 
-
         net = slim.conv2d(inputs, 10, 3, stride=1,scope='conv1')
         _activation_summary(net)
         print(net.get_shape())

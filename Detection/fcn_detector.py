@@ -23,9 +23,10 @@ class FcnDetector(object):
             #self.cls_prob, self.bbox_pred = net_factory(image_reshape, training=False)
             #contains landmark
             self.cls_prob, self.bbox_pred, _ = net_factory(image_reshape, training=False)
-            
-            #allow 
-            self.sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True, gpu_options=tf.GPUOptions(allow_growth=True)))
+
+            #allow
+            self.sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+                gpu_options=tf.GPUOptions(allow_growth=True)))
             saver = tf.train.Saver()
             #check whether the dictionary is valid
             model_dict = '/'.join(model_path.split('/')[:-1])
@@ -37,7 +38,6 @@ class FcnDetector(object):
             saver.restore(self.sess, model_path)
     def predict(self, databatch):
         height, width, _ = databatch.shape
-        # print(height, width)
         cls_prob, bbox_pred = self.sess.run([self.cls_prob, self.bbox_pred],
                                                            feed_dict={self.image_op: databatch, self.width_op: width,
                                                                       self.height_op: height})

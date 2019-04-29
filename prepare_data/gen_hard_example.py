@@ -1,7 +1,7 @@
 #coding:utf-8
 import sys
 #sys.path.append("../")
-from prepare_data.utils import convert_to_square
+from utils import convert_to_square
 
 sys.path.insert(0,'..')
 import numpy as np
@@ -30,7 +30,6 @@ def save_hard_example(net, data,save_path):
 
     print("processing %d images in total" % num_of_images)
 
-    
     # save files
     neg_label_file = "../../DATA/no_LM%d/neg_%d.txt" % (net, image_size)
     neg_file = open(neg_label_file, 'w')
@@ -84,7 +83,7 @@ def save_hard_example(net, data,save_path):
                                     interpolation=cv2.INTER_LINEAR)
 
             # save negative images and write label
-            # Iou with all gts must below 0.3            
+            # Iou with all gts must below 0.3
             if np.max(Iou) < 0.3 and neg_num < 60:
                 #save the examples
                 save_file = get_path(neg_dir, "%s.jpg" % n_idx)
@@ -151,14 +150,14 @@ def t_net(prefix, epoch,
         print("==================================", test_mode)
         ONet = Detector(O_Net, 48, batch_size[2], model_path[2])
         detectors[2] = ONet
-        
+
     basedir = '../../DATA/'
     #anno_file
     filename = './wider_face_train_bbx_gt.txt'
     #read anotation(type:dict), include 'images' and 'bboxes'
     data = read_annotation(basedir,filename)
     mtcnn_detector = MtcnnDetector(detectors=detectors, min_face_size=min_face_size,
-                                   stride=stride, threshold=thresh, slide_window=slide_window)
+                                   stride=stride, threshold=thresh)
     print("==================================")
     # 注意是在“test”模式下
     # imdb = IMDB("wider", image_set, root_path, dataset_path, 'test')
@@ -192,32 +191,31 @@ def t_net(prefix, epoch,
 def parse_args():
     parser = argparse.ArgumentParser(description='Test mtcnn',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--test_mode', dest='test_mode', help='test net type, can be pnet, rnet or onet',
-                        default='RNet', type=str)
-    parser.add_argument('--prefix', dest='prefix', help='prefix of model name', nargs="+",
-                        default=['../data/MTCNN_model/PNet_No_Landmark/PNet', '../data/MTCNN_model/RNet_No_Landmark/RNet', '../data/MTCNN_model/ONet_No_Landmark/ONet'],
+    parser.add_argument('--test_mode', help='test net type, can be pnet, rnet or onet',
+                        default='PNet', type=str)
+    parser.add_argument('--prefix', help='prefix of model name', nargs="+",
+                        default=['../data/MTCNN_model/PNet_landmark/PNet', '../data/MTCNN_model/RNet_landmark/RNet', '../data/MTCNN_model/ONet_No_Landmark/ONet'],
                         type=str)
-    parser.add_argument('--epoch', dest='epoch', help='epoch number of model to load', nargs="+",
+    parser.add_argument('--epoch', help='epoch number of model to load', nargs="+",
                         default=[18, 14, 16], type=int)
-    parser.add_argument('--batch_size', dest='batch_size', help='list of batch size used in prediction', nargs="+",
+    parser.add_argument('--batch_size', help='list of batch size used in prediction', nargs="+",
                         default=[2048, 256, 16], type=int)
-    parser.add_argument('--thresh', dest='thresh', help='list of thresh for pnet, rnet, onet', nargs="+",
+    parser.add_argument('--thresh', help='list of thresh for pnet, rnet, onet', nargs="+",
                         default=[0.3, 0.1, 0.7], type=float)
-    parser.add_argument('--min_face', dest='min_face', help='minimum face size for detection',
+    parser.add_argument('--min_face', help='minimum face size for detection',
                         default=20, type=int)
-    parser.add_argument('--stride', dest='stride', help='stride of sliding window',
+    parser.add_argument('--stride', help='stride of sliding window',
                         default=2, type=int)
-    parser.add_argument('--sw', dest='slide_window', help='use sliding window in pnet', action='store_true')
+    parser.add_argument('--slide_window', help='use sliding window in pnet', action='store_true')
     #parser.add_argument('--gpu', dest='gpu_id', help='GPU device to train with',default=0, type=int)
-    parser.add_argument('--shuffle', dest='shuffle', help='shuffle data on visualization', action='store_true')
-    parser.add_argument('--vis', dest='vis', help='turn on visualization', action='store_true')
+    parser.add_argument('--shuffle', help='shuffle data on visualization', action='store_true', default=True)
+    parser.add_argument('--vis', help='turn on visualization', action='store_true')
     args = parser.parse_args()
     return args
 
 
 if __name__ == '__main__':
-
-    net = 'ONet'
+    net = 'RNet'
 
     if net == "RNet":
         image_size = 24
@@ -226,11 +224,11 @@ if __name__ == '__main__':
 
     base_dir = '../../DATA/WIDER_train'
     data_dir = '../../DATA/no_LM%s' % str(image_size)
-    
+
     neg_dir = get_path(data_dir, 'negative')
     pos_dir = get_path(data_dir, 'positive')
     part_dir = get_path(data_dir, 'part')
-    #create dictionary shuffle   
+    #create dictionary shuffle
     for dir_path in [neg_dir, pos_dir, part_dir]:
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
@@ -241,11 +239,11 @@ if __name__ == '__main__':
     print(args)
     t_net(args.prefix,#model param's file
           args.epoch, #final epoches
-          args.batch_size, #test batch_size 
+          args.batch_size, #test batch_size
           args.test_mode,#test which model
           args.thresh, #cls threshold
           args.min_face, #min_face
           args.stride,#stride
-          args.slide_window, 
-          args.shuffle, 
+          args.slide_window,
+          args.shuffle,
           vis=False)
