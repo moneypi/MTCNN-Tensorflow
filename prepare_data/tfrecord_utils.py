@@ -4,7 +4,6 @@ import os
 import cv2
 from PIL import Image
 
-
 def _int64_feature(value):
     """Wrapper for insert int64 feature into Example proto."""
     if not isinstance(value, list):
@@ -91,8 +90,6 @@ def _convert_to_example_simple(image_example, image_buffer):
     }))
     return example
 
-
-
 class ImageCoder(object):
     """Helper class that provides TensorFlow image coding utilities."""
     def __init__(self):
@@ -120,7 +117,6 @@ class ImageCoder(object):
         assert len(image.shape) == 3, "JPEG needs to have height x width x channels"
         assert image.shape[2] == 3, "JPEG needs to have 3 channels (RGB)"
         return image
-
 
 def _is_png(filename):
     """Determine if a file contains a PNG format image.
@@ -187,6 +183,3 @@ def _process_image_withoutcoder(filename):
     assert image.shape[2] == 3
     # return string data and initial height and width of the image
     return image_data, height, width
-
-
-

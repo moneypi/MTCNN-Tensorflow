@@ -167,7 +167,7 @@ def t_net(prefix, epoch,
     print ('finish loading')
     #list
     print ('start detecting....')
-    detections,_ = mtcnn_detector.detect_face(test_data)
+    detections = mtcnn_detector.detect_face(test_data)
     print ('finish detecting ')
     save_net = 'RNet'
     if test_mode == "PNet":

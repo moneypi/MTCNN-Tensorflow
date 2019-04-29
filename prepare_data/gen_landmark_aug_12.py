@@ -9,7 +9,7 @@ import numpy.random as npr
 
 from BBox_utils import getDataFromTxt, BBox
 from Landmark_utils import rotate, flip
-from utils import IoU
+from data_utils import IoU
 
 def GenerateData(ftxt,data_path,net,argument=False):
     '''
