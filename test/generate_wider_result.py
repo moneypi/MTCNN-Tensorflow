@@ -13,7 +13,6 @@ import cv2
 import os
 
 
-
 def read_gt_bbox(raw_list):
     list_len = len(raw_list)
     bbox_num = (list_len - 1) // 4
@@ -100,7 +99,7 @@ if __name__ == '__main__':
 
         # generate detection
         img = cv2.imread(image_file_name)
-        all_boxes, _ = mtcnn_detector.detect_single_image(img)
+        all_boxes = mtcnn_detector.detect_single_image(img)
 
 
         f_name = item[1].split('.jpg')[0]

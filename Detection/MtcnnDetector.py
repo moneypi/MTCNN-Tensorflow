@@ -240,9 +240,6 @@ class MtcnnDetector(object):
         all_boxes = all_boxes[keep]
 
 
-        boxes = all_boxes[:, :5]
-
-
         bbw = all_boxes[:, 2] - all_boxes[:, 0] + 1
         bbh = all_boxes[:, 3] - all_boxes[:, 1] + 1
 
@@ -260,7 +257,7 @@ class MtcnnDetector(object):
         #     cv2.imshow("im", im)
         #     cv2.waitKey(1)
 
-        return boxes, boxes_c
+        return boxes_c
 
     def detect_rnet(self, im, dets):
         """Get face candidates using rnet
@@ -302,12 +299,12 @@ class MtcnnDetector(object):
             reg = reg[keep_inds]
             # landmark = landmark[keep_inds]
         else:
-            return None, None, None
+            return None, None
 
         keep = py_nms(boxes, 0.6)
         boxes = boxes[keep]
         boxes_c = self.calibrate_box(boxes, reg[keep])
-        return boxes, boxes_c, None
+        return boxes_c
 
     def detect_onet(self, im, dets):
         """Get face candidates using onet
@@ -358,23 +355,21 @@ class MtcnnDetector(object):
         landmark[:, 1::2] = (np.tile(h, (5, 1)) * landmark[:, 1::2].T + np.tile(boxes[:, 1], (5, 1)) - 1).T
         boxes_c = self.calibrate_box(boxes, reg)
 
-        boxes = boxes[py_nms(boxes, 0.6, "Minimum")]
         keep = py_nms(boxes_c, 0.6, "Minimum")
         boxes_c = boxes_c[keep]
         landmark = landmark[keep]
-        return boxes, boxes_c, landmark
+        return boxes_c, landmark
 
     # use for video
     def detect(self, img):
         """Detect face over image
         """
-        boxes = None
         t = time.time()
 
         # pnet
         t1 = 0
         if self.pnet_detector:
-            boxes, boxes_c = self.detect_pnet(img)
+            boxes_c = self.detect_pnet(img)
             if boxes_c is None:
                 return np.array([]), np.array([])
 
@@ -384,7 +379,7 @@ class MtcnnDetector(object):
         # rnet
         t2 = 0
         if self.rnet_detector:
-            boxes, boxes_c, _ = self.detect_rnet(img, boxes_c)
+            boxes_c = self.detect_rnet(img, boxes_c)
             if boxes_c is None:
                 return np.array([]), np.array([])
 
@@ -394,7 +389,7 @@ class MtcnnDetector(object):
         # onet
         t3 = 0
         if self.onet_detector:
-            boxes, boxes_c, landmark = self.detect_onet(img, boxes_c)
+            boxes_c, landmark = self.detect_onet(img, boxes_c)
             if boxes_c is None:
                 return np.array([]), np.array([])
 
@@ -432,7 +427,7 @@ class MtcnnDetector(object):
             # pnet
             if self.pnet_detector:
                 st = time.time()
-                boxes, boxes_c = self.detect_pnet(im)
+                boxes_c = self.detect_pnet(im)
 
                 t1 = time.time() - st
                 sum_time += t1
@@ -440,33 +435,29 @@ class MtcnnDetector(object):
                 if boxes_c is None:
                     print("boxes_c is None...")
                     all_boxes.append(empty_array)
-
                     continue
                 #print(all_boxes)
 
             # rnet
             if self.rnet_detector:
                 t = time.time()
-                # ignore landmark
-                boxes, boxes_c, landmark = self.detect_rnet(im, boxes_c)
+                boxes_c = self.detect_rnet(im, boxes_c)
                 t2 = time.time() - t
                 sum_time += t2
                 t2_sum += t2
                 if boxes_c is None:
                     all_boxes.append(empty_array)
-
                     continue
             # onet
 
             if self.onet_detector:
                 t = time.time()
-                boxes, boxes_c, landmark = self.detect_onet(im, boxes_c)
+                boxes_c, landmark = self.detect_onet(im, boxes_c)
                 t3 = time.time() - t
                 sum_time += t3
                 t3_sum += t3
                 if boxes_c is None:
                     all_boxes.append(empty_array)
-
                     continue
 
             all_boxes.append(boxes_c)
@@ -483,21 +474,18 @@ class MtcnnDetector(object):
     def detect_single_image(self, im):
         all_boxes = []  # save each image's bboxes
 
-        landmarks = []
-
        # sum_time = 0
 
         t1 = 0
         if self.pnet_detector:
           #  t = time.time()
-            boxes, boxes_c = self.detect_pnet(im)
+            boxes_c = self.detect_pnet(im)
            # t1 = time.time() - t
            # sum_time += t1
             if boxes_c is None:
                 print("boxes_c is None...")
                 all_boxes.append(np.array([]))
                 # pay attention
-                landmarks.append(np.array([]))
 
         # rnet
         if boxes_c is None:
@@ -505,13 +493,11 @@ class MtcnnDetector(object):
         t2 = 0
         if self.rnet_detector and not boxes_c is  None:
            # t = time.time()
-            # ignore landmark
-            boxes, boxes_c, landmark = self.detect_rnet(im, boxes_c)
+            boxes_c = self.detect_rnet(im, boxes_c)
            # t2 = time.time() - t
            # sum_time += t2
             if boxes_c is None:
                 all_boxes.append(np.array([]))
-                landmarks.append(np.array([]))
 
         # onet
         t3 = 0
@@ -520,18 +506,15 @@ class MtcnnDetector(object):
 
         if self.onet_detector and not boxes_c is  None:
           #  t = time.time()
-            boxes, boxes_c, landmark = self.detect_onet(im, boxes_c)
+            boxes_c, landmark = self.detect_onet(im, boxes_c)
          #   t3 = time.time() - t
           #  sum_time += t3
             if boxes_c is None:
                 all_boxes.append(np.array([]))
-                landmarks.append(np.array([]))
-
 
         #print(
          #   "time cost " + '{:.3f}'.format(sum_time) + '  pnet {:.3f}  rnet {:.3f}  onet {:.3f}'.format(t1, t2, t3))
 
         all_boxes.append(boxes_c)
-        landmarks.append(landmark)
 
-        return all_boxes, landmarks
+        return all_boxes
